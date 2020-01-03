@@ -77,6 +77,8 @@ export function drawJsonDataToCancasContext (ctx, jsonList) {
 
 /*******************************************************************************************/
 export function drawImage (ctx, path, x, y, w, h, option) {
+  if (!path) return
+
   if (!option.r) {
     ctx.save()
     attatchJsonAttrToContext(ctx, option)
@@ -95,6 +97,8 @@ export function drawImage (ctx, path, x, y, w, h, option) {
 }
 
 export function drawText (ctx, text, x, y, options) {
+  if (!text) return
+
   ctx.save()
   attatchJsonAttrToContext(ctx, options)
 
@@ -130,6 +134,7 @@ export function drawText (ctx, text, x, y, options) {
 }
 
 export function drawLine (ctx, x, y, offset_x, offset_y, options) {
+  if (offset_x <= 0 && offset_y <= 0) return;
   ctx.save()
 
   ctx.moveTo(rpx2px(x), rpx2px(y))
@@ -142,6 +147,8 @@ export function drawLine (ctx, x, y, offset_x, offset_y, options) {
 }
 
 export function roundPath (ctx, x, y, w, h, r, options, action) {
+  if (w <= 0 || h <= 0) return
+  
   ctx.save();
 
   ctx.beginPath()
@@ -228,7 +235,7 @@ function rpx2px (rpx) {
   const {
     windowWidth
   } = wx.getSystemInfoSync()
-  return windowWidth / 750 * rpx;
+  return windowWidth / 750 * rpx * 2;
 }
 
 export function canvasToTempFilePath (option, context) {
