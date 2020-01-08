@@ -70,8 +70,9 @@ export function drawJsonDataToCancasContext (ctx, jsonList) {
         }
       })
     })    
-  }).then(() => {
-    ctx.draw()
+    return new Promise((resolve) => {
+      ctx.draw(false, resolve)
+    })
   })
 }
 
@@ -238,13 +239,13 @@ function rpx2px (rpx) {
   return windowWidth / 750 * rpx * 2;
 }
 
-export function canvasToTempFilePath (option, context) {
+export function canvasToTempFilePath (option) {
   return new Promise((resolve, reject) => {
     wx.canvasToTempFilePath({
       ...option,
       success: resolve,
       fail: reject,
-    }, context)
+    })
   })
 }
 
