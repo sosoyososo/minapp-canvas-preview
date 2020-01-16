@@ -1,11 +1,15 @@
-export function drawDataFromUrl (ctx, url) {
+export function drawDataFromUrl (ctx, url, handleData) {
   return new Promise((resolve, reject) => {
     wx.request({
       url,
       method: 'GET',
       success: function (res) {
         if (res && res.data) {
-          drawJsonDataToCancasContext(ctx, res.data).then(resolve)
+          if (handleData) {
+            drawJsonDataToCancasContext(ctx, handleData(res.data)).then(resolve)
+          } else {
+            drawJsonDataToCancasContext(ctx, res.data).then(resolve)
+          }
         }
       },
       fail: reject,
@@ -24,7 +28,7 @@ export function drawJsonDataToCancasContext (ctx, jsonList) {
       switch (key) {
         case "image": {
           if (v.url) {
-            promises.push(getImageInfo(v.url).then(res => {              
+            promises.push(getImageInfo(v.url).then(res => {
               return {image: {path: res.path, ...v}}
             }))
           }
@@ -42,12 +46,12 @@ export function drawJsonDataToCancasContext (ctx, jsonList) {
   })
 
   return Promise.all(promises).then((jsonList) => {
-    jsonList.forEach(json => {      
+    jsonList.forEach(json => {
       Object.keys(json).forEach(key => {
         let v = json[key];
-        if (!v) return      
+        if (!v) return
         switch (key) {
-          case "line": {          
+          case "line": {
             drawLine(ctx, v.x, v.y, v.w, v.h, v)
             break
           }
@@ -69,7 +73,7 @@ export function drawJsonDataToCancasContext (ctx, jsonList) {
           }
         }
       })
-    })    
+    })
     return new Promise((resolve) => {
       ctx.draw(false, resolve)
     })
@@ -95,6 +99,22 @@ export function drawImage (ctx, path, x, y, w, h, option) {
     ctx.stroke()
   })
 
+}
+
+export function textWidth (ctx, text, options) {
+  if (!text) return 0;
+
+  ctx.save()
+  let fontSize = 24;
+  if (options && options.fontSize) {
+    fontSize = options.fontSize;
+  }
+  ctx.setFontSize(fontSize)
+  let width = ctx.measureText(text).width;
+  console.log(`text ${text} fontSize ${fontSize} width ${width}`)
+  ctx.restore()
+
+  return width;
 }
 
 export function drawText (ctx, text, x, y, options) {
@@ -149,7 +169,7 @@ export function drawLine (ctx, x, y, offset_x, offset_y, options) {
 
 export function roundPath (ctx, x, y, w, h, r, options, action) {
   if (w <= 0 || h <= 0) return
-  
+
   ctx.save();
 
   ctx.beginPath()
@@ -231,8 +251,14 @@ function breakText (ctx, text, maxWidth) {
   return arrTr;
 }
 
+export function px2rpx (px) {
+  const {
+    windowWidth
+  } = wx.getSystemInfoSync()
+  return 750 / windowWidth * px;
+}
 
-function rpx2px (rpx) {
+export function rpx2px (rpx) {
   const {
     windowWidth
   } = wx.getSystemInfoSync()
@@ -307,7 +333,7 @@ function attatchJsonAttrToContext (ctx, json) {
   Object.keys(json).forEach(key => {
     let f = keyMapper[key];
     if (f) {
-      console.log(key, json[key], f)
+      // console.log(key, json[key], f)
       f(ctx, json[key])
     }
   })
